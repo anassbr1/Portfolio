@@ -16,7 +16,8 @@ import { CertificatesSection } from './components/sections/CertificatesSection';
 import { ExperienceSection } from './components/sections/ExperienceSection';
 import { ContactSection } from './components/sections/ContactSection';
 import { Footer } from './components/sections/Footer';
-import { QuickContactFab } from './components/common/QuickContactFab';
+import { QuickInfoDrawer } from './components/common/QuickInfoDrawer';
+import { CursorSpotlight } from './components/common/CursorSpotlight';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -57,6 +58,9 @@ const PublicPortfolio: React.FC = () => {
 
       {/* Pure Black Foundation in Dark Mode / Pure White in Light Mode */}
       <div className="relative min-h-screen bg-white dark:bg-[#000000] text-neutral-900 dark:text-[#F8FAFC] selection:bg-[#6B8E23]/30 selection:text-white overflow-x-hidden transition-colors duration-300">
+        {/* Fluid Olive Mouse-Following Spotlight */}
+        <CursorSpotlight />
+
         {/* Main Section-by-Section Narrative Structure */}
         <div className="relative z-10 flex flex-col min-h-screen">
           {/* Clean Professional Header */}
@@ -92,8 +96,8 @@ const PublicPortfolio: React.FC = () => {
           <Footer />
         </div>
 
-        {/* Sticky Quick-Contact Floating Action Button (FAB) */}
-        <QuickContactFab />
+        {/* Collapsible Profile Quick-View Slide-Out Drawer */}
+        <QuickInfoDrawer />
       </div>
     </>
   );

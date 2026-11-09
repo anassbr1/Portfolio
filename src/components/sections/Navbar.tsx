@@ -41,9 +41,9 @@ export const Navbar: React.FC = () => {
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-        {/* Left: Strictly Anass Bouras (clean, elegant typography, no side tags or emblems) */}
+        {/* Left: Strictly Anass Bouras (clean modern typography, no abbreviations, badges, or prefixes) */}
         <a href="#hero" className="flex items-center group py-1">
-          <span className="font-orbitron font-bold text-base sm:text-lg tracking-wide text-neutral-900 dark:text-white group-hover:text-[#70A83B] transition-colors">
+          <span className="font-orbitron font-bold text-lg sm:text-xl tracking-tight text-neutral-900 dark:text-white group-hover:text-[#70A83B] transition-colors">
             {data.personal.name[language] || data.personal.name.en}
           </span>
         </a>
@@ -95,10 +95,10 @@ export const Navbar: React.FC = () => {
             )}
           </button>
 
-          {/* Sleek, Styled Contact Trigger */}
+          {/* Solid Olive Contact Trigger */}
           <a
             href="#contact"
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200 text-xs font-semibold tracking-wide transition-all shadow-sm active:scale-95"
+            className="flex items-center gap-1.5 px-5 py-2 rounded-full bg-[#6B8E23] hover:bg-[#556B2F] text-white text-xs font-semibold tracking-wide transition-all shadow-[0_0_15px_rgba(107,142,35,0.35)] hover:shadow-[0_0_22px_rgba(107,142,35,0.55)] active:scale-95"
           >
             <span>{t.nav.contact}</span>
             <ArrowUpRight className="w-3.5 h-3.5" />

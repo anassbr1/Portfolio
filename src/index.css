@@ -88,6 +88,18 @@ h1, h2, h3, .font-heading {
     0 0 0 1px var(--border-subtle);
 }
 
+.card-luxury {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-luxury:hover {
+  transform: translateY(-4px);
+  border-color: rgba(112, 168, 59, 0.45);
+  box-shadow: 0 12px 35px -5px rgba(112, 168, 59, 0.18), 0 0 20px -2px rgba(107, 142, 35, 0.12);
+}
+
 /* Liquid Wave Clip-Path Animation for Preloader */
 @keyframes liquidWave {
   0% {

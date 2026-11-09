@@ -70,6 +70,22 @@ export const ProjectsHubSection: React.FC = () => {
     return true;
   });
 
+  const handleFilterSelect = (catId: string) => {
+    setActiveCategory(catId);
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollLeft = 0;
+    }
+  };
+
+  // Ensure uninterrupted seamless infinite scroll with dynamic replenishment
+  const displayProjects = React.useMemo(() => {
+    if (filteredProjects.length === 0) return [];
+    if (filteredProjects.length < 3) {
+      return [...filteredProjects, ...filteredProjects, ...filteredProjects, ...filteredProjects];
+    }
+    return [...filteredProjects, ...filteredProjects];
+  }, [filteredProjects]);
+
   // Seamless Auto-Spinning Carousel Animation Loop
   useEffect(() => {
     const container = scrollContainerRef.current;
@@ -92,6 +108,7 @@ export const ProjectsHubSection: React.FC = () => {
     return () => cancelAnimationFrame(animationFrameId);
   }, [isPaused, filteredProjects]);
 
+  // Handlers and helper functions
   const handleManualScroll = (direction: 'left' | 'right') => {
     if (!scrollContainerRef.current) return;
     const offset = direction === 'left' ? -380 : 380;
@@ -108,9 +125,6 @@ export const ProjectsHubSection: React.FC = () => {
       default: return <Cpu className="w-3.5 h-3.5 text-[#70A83B]" />;
     }
   };
-
-  // Duplicate items to ensure uninterrupted seamless infinite scroll
-  const displayProjects = [...filteredProjects, ...filteredProjects];
 
   return (
     <section id="projects" className="relative py-24 z-10 overflow-hidden">
@@ -133,11 +147,11 @@ export const ProjectsHubSection: React.FC = () => {
             {filterTabs.map(tab => (
               <button
                 key={tab.id}
-                onClick={() => setActiveCategory(tab.id)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-orbitron font-semibold tracking-wider transition-all duration-200 ${
+                onClick={() => handleFilterSelect(tab.id)}
+                className={`px-4 py-2 rounded-full text-xs font-orbitron font-semibold tracking-wider transition-all duration-200 ${
                   activeCategory === tab.id
-                    ? 'bg-[#6B8E23] text-white shadow-[0_0_15px_rgba(107,142,35,0.4)]'
-                    : 'bg-neutral-100 dark:bg-white/[0.03] border border-neutral-300 dark:border-white/10 text-neutral-700 dark:text-neutral-400 hover:text-black dark:hover:text-white'
+                    ? 'bg-[#6B8E23] text-white border border-[#70A83B] shadow-[0_0_15px_rgba(107,142,35,0.45)] scale-105'
+                    : 'bg-neutral-100 dark:bg-white/[0.03] border border-neutral-300 dark:border-white/10 text-neutral-700 dark:text-neutral-400 hover:text-black dark:hover:text-white hover:border-[#6B8E23]/40'
                 }`}
               >
                 {tab.label}
@@ -178,7 +192,7 @@ export const ProjectsHubSection: React.FC = () => {
         {displayProjects.map((project, idx) => (
           <div
             key={`${project.id}-${idx}`}
-            className="w-[360px] sm:w-[420px] shrink-0 rounded-3xl p-6 sm:p-7 bg-neutral-50 dark:bg-[#08080a] border border-neutral-200 dark:border-white/10 backdrop-blur-xl shadow-md dark:shadow-luxury hover:border-[#6B8E23]/60 hover:shadow-[0_15px_35px_rgba(107,142,35,0.25)] transition-all duration-300 flex flex-col justify-between"
+            className="w-[360px] sm:w-[420px] shrink-0 rounded-3xl p-6 sm:p-7 bg-neutral-50 dark:bg-[#08080a] border border-neutral-200 dark:border-white/10 backdrop-blur-xl shadow-md dark:shadow-luxury hover:-translate-y-1 hover:border-[#70A83B]/60 hover:shadow-[0_15px_35px_rgba(112,168,59,0.25)] transition-all duration-300 flex flex-col justify-between"
           >
             <div className="space-y-4">
               {/* Category Badge in Olive Green Wireframe */}

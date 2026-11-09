@@ -98,7 +98,7 @@ export const HeroSection: React.FC = () => {
         {/* Split Stage Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
           {/* Left Column: Headlines, Typewriter & Actions */}
-          <div className="lg:col-span-7 space-y-6">
+          <div className="lg:col-span-7 space-y-6 relative z-20">
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-xs font-mono text-[#70A83B] uppercase tracking-widest font-semibold">
                 <MapPin className="w-3.5 h-3.5" />
@@ -144,7 +144,7 @@ export const HeroSection: React.FC = () => {
               <div className="p-3.5 rounded-2xl bg-white dark:bg-white/[0.02] border border-[#6B8E23]/30 shadow-xs">
                 <div className="text-[10px] font-mono text-[#70A83B] uppercase">{t.hero.specFocus}</div>
                 <div className="font-semibold text-[#70A83B] text-xs mt-0.5 truncate">
-                  MLOps & Deep Learning
+                  AI Engeneer
                 </div>
               </div>
               <div className="p-3.5 rounded-2xl bg-white dark:bg-white/[0.02] border border-neutral-200 dark:border-white/[0.08] shadow-xs">
@@ -240,9 +240,15 @@ export const HeroSection: React.FC = () => {
                 {/* Portrait Image Frame */}
                 <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-gradient-to-b from-neutral-200 via-neutral-100 to-neutral-200 dark:from-[#111114] dark:via-[#050505] dark:to-[#000000] flex items-end justify-center">
                   <img
-                    src={data.personal.portraitStand || "/assets/Me/Me standing.png"}
+                    src="/assets/Me/Me.png"
                     alt="Anass Bouras - Professional Portrait"
-                    className="relative z-10 max-h-[96%] w-auto object-contain filter drop-shadow-[0_20px_35px_rgba(0,0,0,0.4)] dark:drop-shadow-[0_20px_35px_rgba(0,0,0,0.9)] transition-transform duration-700 ease-out hover:scale-105"
+                    className="relative z-10 w-full h-full object-cover object-top filter drop-shadow-[0_20px_35px_rgba(0,0,0,0.4)] dark:drop-shadow-[0_20px_35px_rgba(0,0,0,0.9)] transition-transform duration-700 ease-out hover:scale-105"
+                    style={{
+                      objectFit: 'cover',
+                      objectPosition: 'center top',
+                      maskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
+                      WebkitMaskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
+                    }}
                     loading="eager"
                   />
 

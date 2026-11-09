@@ -18,7 +18,9 @@ import {
   Cpu,
   Terminal,
   Save,
-  X
+  X,
+  FileText,
+  ExternalLink
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { ProjectItem, ExperienceItem, CertificationItem } from '../../types/portfolio';
@@ -39,6 +41,7 @@ export const AdminDashboard: React.FC = () => {
     resetData,
     exportJson,
     importJson,
+    setData,
   } = usePortfolio();
 
   // Authentication State
@@ -49,7 +52,8 @@ export const AdminDashboard: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState('');
 
   // Active Admin Sub-View
-  const [activeTab, setActiveTab] = useState<'projects' | 'experience' | 'certificates' | 'persistence'>('projects');
+  const [activeTab, setActiveTab] = useState<'projects' | 'experience' | 'certificates' | 'cv' | 'persistence'>('projects');
+  const [customCvUrl, setCustomCvUrl] = useState(data.personal.cvUrl || '/assets/Cv_Latest.pdf');
 
   // Editing Project Modal State
   const [editingProject, setEditingProject] = useState<ProjectItem | null>(null);
@@ -85,6 +89,59 @@ export const AdminDashboard: React.FC = () => {
   const triggerNotice = (msg: string) => {
     setSuccessNotice(msg);
     setTimeout(() => setSuccessNotice(''), 3500);
+  };
+
+  const handleCvUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      triggerNotice('Error: Only PDF documents are allowed.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64Pdf = reader.result as string;
+      setData(prev => {
+        const updated = {
+          ...prev,
+          personal: {
+            ...prev.personal,
+            cvUrl: base64Pdf,
+          },
+        };
+        try {
+          localStorage.setItem('anass_bouras_portfolio_v4_clean', JSON.stringify(updated));
+        } catch (err) {
+          console.warn('LocalStorage size limit exceeded for embedded PDF, persisted in runtime state.', err);
+        }
+        return updated;
+      });
+      setCustomCvUrl('Uploaded Custom PDF Document');
+      triggerNotice('New CV document uploaded and synced to public portfolio!');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSetStandardCv = (url: string) => {
+    setData(prev => {
+      const updated = {
+        ...prev,
+        personal: {
+          ...prev.personal,
+          cvUrl: url,
+        },
+      };
+      try {
+        localStorage.setItem('anass_bouras_portfolio_v4_clean', JSON.stringify(updated));
+      } catch (err) {
+        console.error(err);
+      }
+      return updated;
+    });
+    setCustomCvUrl(url);
+    triggerNotice(`CV URL set to ${url} successfully!`);
   };
 
   const handleLogin = (e: React.FormEvent) => {
@@ -347,6 +404,18 @@ export const AdminDashboard: React.FC = () => {
           >
             <Award className="w-4 h-4" />
             <span>Certifications ({data.certifications.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('cv')}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-orbitron font-semibold transition-all ${
+              activeTab === 'cv'
+                ? 'bg-[#6B8E23] text-white shadow-[0_0_20px_rgba(107,142,35,0.4)]'
+                : 'bg-white/[0.03] text-neutral-400 hover:text-white'
+            }`}
+          >
+            <FileText className="w-4 h-4" />
+            <span>CV Management</span>
           </button>
 
           <button
@@ -698,6 +767,115 @@ export const AdminDashboard: React.FC = () => {
                   </button>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* TAB: CV MANAGEMENT */}
+        {activeTab === 'cv' && (
+          <div className="space-y-6">
+            <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/10 space-y-5">
+              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-xs font-mono text-[#70A83B] font-bold uppercase">
+                    <FileText className="w-4 h-4 text-[#70A83B]" />
+                    <span>CURRICULUM VITAE CONFIGURATION</span>
+                  </div>
+                  <h3 className="text-lg font-bold font-orbitron text-white">
+                    Dynamic CV & Asset Dispatch Engine
+                  </h3>
+                </div>
+                <div className="px-3 py-1 rounded-full bg-[#6B8E23]/20 border border-[#70A83B]/40 text-[#70A83B] text-[11px] font-mono font-semibold">
+                  STATUS: SYNCHRONIZED
+                </div>
+              </div>
+
+              {/* Current Active CV Status Card */}
+              <div className="p-4 rounded-2xl bg-black/60 border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-mono text-neutral-400 uppercase tracking-wider block">
+                    Current Active Download Target:
+                  </span>
+                  <div className="font-mono text-xs text-white truncate max-w-md bg-white/[0.04] px-3 py-1.5 rounded-lg border border-white/5">
+                    {customCvUrl || data.personal.cvUrl || '/assets/Cv_Latest.pdf'}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <a
+                    href={data.personal.cvUrl || '/assets/Cv_Latest.pdf'}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/[0.06] hover:bg-white/10 text-xs font-orbitron font-semibold text-white transition-colors"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5 text-[#70A83B]" />
+                    <span>View / Test</span>
+                  </a>
+
+                  <a
+                    href={data.personal.cvUrl || '/assets/Cv_Latest.pdf'}
+                    download="Cv_Anass_Bouras_Eng.pdf"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#6B8E23] hover:bg-[#556B2F] text-xs font-orbitron font-bold text-white uppercase tracking-wider transition-all"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download</span>
+                  </a>
+                </div>
+              </div>
+
+              {/* Upload New Document Box */}
+              <div className="p-5 rounded-2xl bg-white/[0.02] border border-dashed border-[#70A83B]/40 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Upload className="w-4 h-4 text-[#70A83B]" />
+                  <h4 className="text-xs font-orbitron font-bold text-white uppercase tracking-wider">
+                    Upload & Deploy New PDF Document
+                  </h4>
+                </div>
+                <p className="text-xs text-neutral-400 font-sans">
+                  Select a fresh PDF resume from your machine. It will automatically bind into the runtime state and sync across all public [Download CV] buttons.
+                </p>
+
+                <div className="pt-2">
+                  <label className="flex flex-col items-center justify-center p-6 rounded-2xl bg-black/40 border border-white/10 hover:border-[#70A83B] cursor-pointer transition-colors group">
+                    <Upload className="w-7 h-7 text-[#70A83B] group-hover:scale-110 transition-transform mb-2" />
+                    <span className="text-xs font-orbitron font-bold text-white">
+                      Click to Select PDF File (.pdf)
+                    </span>
+                    <span className="text-[10px] font-mono text-neutral-500 mt-1">
+                      Max file size recommended &lt; 5MB
+                    </span>
+                    <input
+                      type="file"
+                      accept="application/pdf"
+                      onChange={handleCvUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* Standardize Presets */}
+              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10 space-y-3">
+                <span className="text-[10px] font-mono text-neutral-400 uppercase tracking-wider block font-semibold">
+                  Standardized Document Presets:
+                </span>
+                <div className="flex flex-wrap gap-2.5">
+                  <button
+                    onClick={() => handleSetStandardCv('/assets/Cv_Latest.pdf')}
+                    className="px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-[#6B8E23]/20 border border-white/10 hover:border-[#70A83B] text-xs font-mono text-neutral-200 transition-colors"
+                  >
+                    Set to <code className="text-[#70A83B]">/assets/Cv_Latest.pdf</code> (Production)
+                  </button>
+                  <button
+                    onClick={() => handleSetStandardCv('/assets/Cv Anass Eng_compressed.pdf')}
+                    className="px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-[#6B8E23]/20 border border-white/10 hover:border-[#70A83B] text-xs font-mono text-neutral-200 transition-colors"
+                  >
+                    Set to <code className="text-amber-400">/assets/Cv Anass Eng_compressed.pdf</code>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}

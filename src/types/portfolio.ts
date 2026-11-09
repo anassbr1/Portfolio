@@ -134,6 +134,7 @@ export interface PortfolioData {
     cvUrl: string;
     portraitStand: string;
     portraitCrossed: string;
+    portraitCloseUp?: string;
   };
   flagshipProjects: ProjectItem[];
   repositories: ProjectItem[];
