@@ -1,0 +1,222 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant light (&:where(.light, .light *));
+
+:root {
+  --bg-primary: #000000;
+  --bg-surface: #050505;
+  --bg-card: rgba(10, 10, 12, 0.9);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-olive: rgba(107, 142, 35, 0.45);
+  --accent-olive: #6B8E23;
+  --accent-olive-dark: #556B2F;
+  --accent-olive-neon: #70A83B;
+  --text-primary: #FFFFFF;
+  --text-secondary: #CBD5E1;
+  --text-muted: #64748B;
+}
+
+html.light {
+  color-scheme: light;
+  --bg-primary: #ffffff;
+  --bg-surface: #f8fafc;
+  --bg-card: rgba(255, 255, 255, 0.98);
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-olive: rgba(107, 142, 35, 0.6);
+  --accent-olive: #556B2F;
+  --accent-olive-dark: #384620;
+  --accent-olive-neon: #6B8E23;
+  --text-primary: #0a0a0a;
+  --text-secondary: #334155;
+  --text-muted: #64748B;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow-x: hidden;
+  transition: background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s ease;
+}
+
+html.dark body {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+html.light body {
+  background-color: #ffffff !important;
+  color: #0a0a0a !important;
+}
+
+h1, h2, h3, .font-heading {
+  font-family: 'Orbitron', 'Syne', 'Space Grotesk', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+[dir="rtl"] body {
+  font-family: 'Cairo', 'Tajawal', system-ui, sans-serif;
+}
+
+[dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3, [dir="rtl"] .font-heading {
+  font-family: 'Cairo', 'Tajawal', sans-serif;
+  letter-spacing: 0;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;
+}
+
+/* Olive Green Glows & Holographic Shadows */
+.shadow-olive-glow {
+  box-shadow: 0 0 30px -5px rgba(107, 142, 35, 0.35), 0 0 12px -2px rgba(112, 168, 59, 0.25);
+}
+
+.shadow-olive-deep {
+  box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.9), 0 0 30px -5px rgba(85, 107, 47, 0.35);
+}
+
+.shadow-luxury {
+  box-shadow: 
+    0 10px 30px -10px rgba(0, 0, 0, 0.7),
+    0 20px 40px -15px rgba(0, 0, 0, 0.5),
+    0 0 0 1px var(--border-subtle);
+}
+
+/* Liquid Wave Clip-Path Animation for Preloader */
+@keyframes liquidWave {
+  0% {
+    transform: translateY(100%) scaleY(1);
+  }
+  50% {
+    transform: translateY(35%) scaleY(1.05);
+  }
+  100% {
+    transform: translateY(0%) scaleY(1);
+  }
+}
+
+@keyframes dropletFall {
+  0% {
+    transform: translateY(-40px) scale(0.6);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  80% {
+    transform: translateY(30px) scale(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(45px) scale(0.4);
+    opacity: 0;
+  }
+}
+
+.animate-liquid-wave {
+  animation: liquidWave 3.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Infinite Seamless Horizontal Marquee Track */
+@keyframes infiniteMarqueeLeft {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes infiniteMarqueeRight {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+.animate-marquee-left {
+  display: flex;
+  width: max-content;
+  animation: infiniteMarqueeLeft 40s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-right {
+  display: flex;
+  width: max-content;
+  animation: infiniteMarqueeRight 40s linear infinite;
+  will-change: transform;
+}
+
+/* Pause on hover */
+.pause-on-hover:hover .animate-marquee-left,
+.pause-on-hover:hover .animate-marquee-right {
+  animation-play-state: paused;
+}
+
+/* Hide scrollbar for clean carousels */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Glassmorphism Surface */
+.glass-surface {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Smooth Lenis Scrolling */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1a1a1d;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6B8E23;
+}
+
+/* Expanding Circular Clip-Path Theme Transition Layer */
+.theme-transition-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  pointer-events: none;
+}
