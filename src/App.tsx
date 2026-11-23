@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Lenis from 'lenis';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 import { PortfolioProvider } from './context/PortfolioContext';
-import { Preloader } from './components/loader/Preloader';
 import { Navbar } from './components/sections/Navbar';
 import { HeroSection } from './components/sections/HeroSection';
 import { AboutMeSection } from './components/sections/AboutMeSection';
@@ -23,9 +22,6 @@ import { AdminDashboard } from './components/admin/AdminDashboard';
 gsap.registerPlugin(ScrollTrigger);
 
 const PublicPortfolio: React.FC = () => {
-  // Preloader State: Automatically triggers on every page load / refresh
-  const [showPreloader, setShowPreloader] = useState<boolean>(true);
-
   // Global Lenis Smooth Inertial Scroll linked directly with GSAP ScrollTrigger
   useEffect(() => {
     const lenis = new Lenis({
@@ -50,14 +46,7 @@ const PublicPortfolio: React.FC = () => {
   }, []);
 
   return (
-    <>
-      {/* 5-Second Liquid ANBO Preloader Sequence */}
-      {showPreloader && (
-        <Preloader onComplete={() => setShowPreloader(false)} />
-      )}
-
-      {/* Pure Black Foundation in Dark Mode / Pure White in Light Mode */}
-      <div className="relative min-h-screen bg-white dark:bg-[#000000] text-neutral-900 dark:text-[#F8FAFC] selection:bg-[#6B8E23]/30 selection:text-white overflow-x-hidden transition-colors duration-300">
+    <div className="relative min-h-screen bg-white dark:bg-[#000000] text-neutral-900 dark:text-[#F8FAFC] selection:bg-[#6B8E23]/30 selection:text-white overflow-x-hidden transition-colors duration-300">
         {/* Fluid Olive Mouse-Following Spotlight */}
         <CursorSpotlight />
 
@@ -99,7 +88,6 @@ const PublicPortfolio: React.FC = () => {
         {/* Collapsible Profile Quick-View Slide-Out Drawer */}
         <QuickInfoDrawer />
       </div>
-    </>
   );
 };
 

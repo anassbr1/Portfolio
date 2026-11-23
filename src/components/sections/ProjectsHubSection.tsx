@@ -10,10 +10,11 @@ import {
   Sparkles, 
   GitBranch, 
   Star, 
-  Layers,
-  Terminal,
-  ChevronLeft,
-  ChevronRight
+  Layers, 
+  Terminal, 
+  ChevronLeft, 
+  ChevronRight,
+  X
 } from 'lucide-react';
 import type { ProjectItem } from '../../types/portfolio';
 
@@ -33,7 +34,15 @@ export const ProjectsHubSection: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [githubRepos, setGithubRepos] = useState<GithubRepo[]>([]);
   const [isPaused, setIsPaused] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<ProjectItem | null>(null);
+
+  // Drag-to-scroll refs & state
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const isDraggingRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollLeftRef = useRef(0);
+  const hasDraggedRef = useRef(false);
+  const [isCursorGrabbing, setIsCursorGrabbing] = useState(false);
 
   // Fetch live GitHub telemetry from @anassbr1
   useEffect(() => {
@@ -52,6 +61,23 @@ export const ProjectsHubSection: React.FC = () => {
     };
     fetchRepos();
   }, []);
+
+  // Close modal on Escape key & disable background scroll
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedProject(null);
+      }
+    };
+    if (selectedProject) {
+      window.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [selectedProject]);
 
   const filterTabs = [
     { id: 'all', label: t.projects.filterAll },
@@ -86,7 +112,7 @@ export const ProjectsHubSection: React.FC = () => {
     return [...filteredProjects, ...filteredProjects];
   }, [filteredProjects]);
 
-  // Seamless Auto-Spinning Carousel Animation Loop
+  // Seamless Auto-Spinning Carousel Animation Loop (pauses on hover or during drag)
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
@@ -95,7 +121,7 @@ export const ProjectsHubSection: React.FC = () => {
     const speed = 0.85; // Pixels per frame
 
     const step = () => {
-      if (!isPaused && container) {
+      if (!isPaused && !isDraggingRef.current && container) {
         container.scrollLeft += speed;
         if (container.scrollLeft >= container.scrollWidth / 2) {
           container.scrollLeft = 0;
@@ -108,7 +134,75 @@ export const ProjectsHubSection: React.FC = () => {
     return () => cancelAnimationFrame(animationFrameId);
   }, [isPaused, filteredProjects]);
 
-  // Handlers and helper functions
+  // Handlers for Mouse Drag-to-Scroll
+  const handleMouseDown = (e: React.MouseEvent) => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    isDraggingRef.current = true;
+    hasDraggedRef.current = false;
+    startXRef.current = e.pageX;
+    scrollLeftRef.current = container.scrollLeft;
+    setIsCursorGrabbing(true);
+    setIsPaused(true);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDraggingRef.current || !scrollContainerRef.current) return;
+    e.preventDefault();
+    const container = scrollContainerRef.current;
+    const deltaX = e.pageX - startXRef.current;
+    if (Math.abs(deltaX) >= 6) {
+      hasDraggedRef.current = true;
+    }
+    container.scrollLeft = scrollLeftRef.current - deltaX;
+  };
+
+  const handleMouseUp = () => {
+    isDraggingRef.current = false;
+    setIsCursorGrabbing(false);
+  };
+
+  const handleMouseLeave = () => {
+    isDraggingRef.current = false;
+    setIsCursorGrabbing(false);
+    setIsPaused(false);
+  };
+
+  // Touch handlers for mobile swipe
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    isDraggingRef.current = true;
+    hasDraggedRef.current = false;
+    startXRef.current = e.touches[0].pageX;
+    scrollLeftRef.current = container.scrollLeft;
+    setIsPaused(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDraggingRef.current || !scrollContainerRef.current) return;
+    const container = scrollContainerRef.current;
+    const deltaX = e.touches[0].pageX - startXRef.current;
+    if (Math.abs(deltaX) >= 6) {
+      hasDraggedRef.current = true;
+    }
+    container.scrollLeft = scrollLeftRef.current - deltaX;
+  };
+
+  const handleTouchEnd = () => {
+    isDraggingRef.current = false;
+    setIsPaused(false);
+  };
+
+  // Click card handler (distinguishes drag vs click)
+  const handleCardClick = (project: ProjectItem) => {
+    if (hasDraggedRef.current) {
+      // Movement was >= 6px: this was a drag gesture, do not trigger modal
+      return;
+    }
+    setSelectedProject(project);
+  };
+
   const handleManualScroll = (direction: 'left' | 'right') => {
     if (!scrollContainerRef.current) return;
     const offset = direction === 'left' ? -380 : 380;
@@ -160,8 +254,13 @@ export const ProjectsHubSection: React.FC = () => {
           </div>
         </div>
 
-        {/* Navigation Arrows */}
-        <div className="flex items-center justify-end mb-4">
+        {/* Navigation Arrows & Interaction Hint */}
+        <div className="flex items-center justify-between mb-4 px-2">
+          <div className="flex items-center gap-2 text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
+            <span className="w-2 h-2 rounded-full bg-[#70A83B] animate-pulse" />
+            <span>Drag horizontally • Click card to view architecture</span>
+          </div>
+
           <div className="flex items-center gap-2">
             <button
               onClick={() => handleManualScroll('left')}
@@ -181,21 +280,30 @@ export const ProjectsHubSection: React.FC = () => {
         </div>
       </div>
 
-      {/* Auto-Spinning Infinite Horizontal Ribbon Track */}
+      {/* Auto-Spinning & Drag-to-Scroll Horizontal Ribbon Track */}
       <div
         ref={scrollContainerRef}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
         onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-        className="flex gap-6 overflow-x-auto no-scrollbar py-4 px-4 sm:px-8 cursor-grab active:cursor-grabbing select-none"
+        onMouseLeave={handleMouseLeave}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        className={`flex gap-6 overflow-x-auto no-scrollbar py-4 px-4 sm:px-8 select-none transition-cursor ${
+          isCursorGrabbing ? 'cursor-grabbing' : 'cursor-grab'
+        }`}
         style={{ scrollBehavior: 'auto' }}
       >
         {displayProjects.map((project, idx) => (
           <div
             key={`${project.id}-${idx}`}
-            className="w-[360px] sm:w-[420px] shrink-0 rounded-3xl p-6 sm:p-7 bg-neutral-50 dark:bg-[#08080a] border border-neutral-200 dark:border-white/10 backdrop-blur-xl shadow-md dark:shadow-luxury hover:-translate-y-1 hover:border-[#70A83B]/60 hover:shadow-[0_15px_35px_rgba(112,168,59,0.25)] transition-all duration-300 flex flex-col justify-between"
+            onClick={() => handleCardClick(project)}
+            className="w-[360px] sm:w-[420px] shrink-0 rounded-3xl p-6 sm:p-7 bg-neutral-50 dark:bg-[#08080a] border border-neutral-200 dark:border-white/10 backdrop-blur-xl shadow-md dark:shadow-luxury hover:-translate-y-1 hover:border-[#70A83B]/60 hover:shadow-[0_15px_35px_rgba(112,168,59,0.25)] transition-all duration-300 flex flex-col justify-between cursor-pointer group"
           >
             <div className="space-y-4">
-              {/* Category Badge in Olive Green Wireframe */}
+              {/* Category Badge & Status */}
               <div className="flex items-center justify-between text-xs font-mono">
                 <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#6B8E23]/10 text-[#70A83B] border border-[#6B8E23]/40 font-bold uppercase">
                   {getCategoryIcon(project.category)}
@@ -208,7 +316,7 @@ export const ProjectsHubSection: React.FC = () => {
 
               {/* Title & Subtitle */}
               <div>
-                <h3 className="text-xl font-bold font-orbitron text-neutral-950 dark:text-white line-clamp-2">
+                <h3 className="text-xl font-bold font-orbitron text-neutral-950 dark:text-white line-clamp-2 group-hover:text-[#70A83B] transition-colors">
                   {project.title}
                 </h3>
                 <p className="text-xs font-mono text-[#70A83B] mt-1 line-clamp-1">
@@ -250,13 +358,14 @@ export const ProjectsHubSection: React.FC = () => {
               </div>
             </div>
 
-            {/* Action Buttons: GitHub link and Demo link */}
+            {/* Action Buttons: GitHub link and Details trigger */}
             <div className="mt-5 pt-3.5 border-t border-neutral-200 dark:border-white/[0.08] flex items-center justify-between gap-3">
               {project.repoUrl ? (
                 <a
                   href={project.repoUrl}
                   target="_blank"
                   rel="noreferrer"
+                  onClick={(e) => e.stopPropagation()}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-100 hover:bg-[#6B8E23]/20 dark:bg-white/[0.04] border border-neutral-300 hover:border-[#6B8E23]/50 dark:border-white/10 text-neutral-900 dark:text-white text-xs font-orbitron font-semibold uppercase tracking-wider transition-colors"
                 >
                   <GithubIcon className="w-3.5 h-3.5" />
@@ -267,8 +376,9 @@ export const ProjectsHubSection: React.FC = () => {
                 <span className="text-[10px] font-mono text-neutral-500">Internal IP</span>
               )}
 
-              <span className="text-[10px] font-mono text-[#70A83B] font-semibold">
-                PROD GRADE
+              <span className="text-[10px] font-mono text-[#70A83B] font-semibold flex items-center gap-1">
+                <span>View Specs</span>
+                <span className="text-xs">➔</span>
               </span>
             </div>
           </div>
@@ -321,6 +431,139 @@ export const ProjectsHubSection: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Project Details Modal */}
+      {selectedProject && (
+        <div 
+          onClick={() => setSelectedProject(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md transition-opacity duration-300"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-[#08080a] text-neutral-900 dark:text-white border-2 border-[#70A83B]/50 shadow-[0_0_50px_rgba(112,168,59,0.35)] p-6 sm:p-8 backdrop-blur-2xl transition-all"
+          >
+            {/* Top Bar: Category, Status & Close Button */}
+            <div className="flex items-center justify-between pb-3.5 border-b border-neutral-200 dark:border-white/10">
+              <div className="flex items-center gap-2">
+                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#6B8E23]/15 text-[#70A83B] border border-[#6B8E23]/40 text-xs font-mono font-bold uppercase">
+                  {getCategoryIcon(selectedProject.category)}
+                  <span>{selectedProject.category}</span>
+                </span>
+                <span className="text-xs font-mono text-neutral-500 dark:text-neutral-400">
+                  {selectedProject.status}
+                </span>
+              </div>
+
+              <button
+                onClick={() => setSelectedProject(null)}
+                className="p-2 rounded-full bg-neutral-100 hover:bg-neutral-200 dark:bg-white/[0.05] dark:hover:bg-white/10 text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white transition-colors"
+                aria-label="Fermer la modale"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Title & Subtitle */}
+            <div className="mt-4 space-y-1">
+              <h3 className="text-2xl sm:text-3xl font-black font-orbitron text-neutral-950 dark:text-white leading-tight">
+                {selectedProject.title}
+              </h3>
+              <p className="text-xs sm:text-sm font-mono text-[#70A83B]">
+                {selectedProject.subtitle}
+              </p>
+              {selectedProject.coordinates && (
+                <p className="text-[10px] font-mono text-neutral-400">
+                  {selectedProject.coordinates}
+                </p>
+              )}
+            </div>
+
+            {/* Detailed Description */}
+            <div className="mt-5 space-y-2">
+              <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+                Architecture & Méthodologie
+              </h4>
+              <p className="text-sm sm:text-base text-neutral-700 dark:text-neutral-300 leading-relaxed font-sans">
+                {selectedProject.description[language] || selectedProject.description.en}
+              </p>
+            </div>
+
+            {/* Metrics */}
+            {selectedProject.metrics && selectedProject.metrics.length > 0 && (
+              <div className="mt-6 space-y-2">
+                <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+                  Métriques & Résultats Validés
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                  {selectedProject.metrics.map((m, mIdx) => (
+                    <div key={mIdx} className="p-3 rounded-2xl bg-neutral-100/80 dark:bg-white/[0.03] border border-neutral-200 dark:border-white/10">
+                      <span className="text-[10px] font-mono text-neutral-500 block truncate">
+                        {m.label[language] || m.label.en}
+                      </span>
+                      <span className="text-sm sm:text-base font-orbitron font-bold text-neutral-950 dark:text-white">
+                        {m.value}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Tech Stack */}
+            <div className="mt-6 space-y-2">
+              <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+                Technologies & Outils Clés
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {selectedProject.techStack.map((tech, tIdx) => (
+                  <span
+                    key={tIdx}
+                    className="px-3 py-1 rounded-xl text-xs font-mono bg-neutral-100 dark:bg-white/[0.04] text-neutral-800 dark:text-neutral-200 border border-neutral-200 dark:border-white/10"
+                  >
+                    {tech}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Direct Action Links */}
+            <div className="mt-8 pt-5 border-t border-neutral-200 dark:border-white/10 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-3">
+                {selectedProject.repoUrl && (
+                  <a
+                    href={selectedProject.repoUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#6B8E23] hover:bg-[#556B2F] text-white font-orbitron font-bold text-xs uppercase tracking-wider transition-all shadow-[0_0_15px_rgba(107,142,35,0.4)]"
+                  >
+                    <GithubIcon className="w-4 h-4" />
+                    <span>Code Source (GitHub)</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                )}
+
+                {selectedProject.demoUrl && (
+                  <a
+                    href={selectedProject.demoUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-neutral-100 dark:bg-white/[0.05] hover:bg-neutral-200 dark:hover:bg-white/10 border border-neutral-300 dark:border-white/10 text-neutral-900 dark:text-white font-orbitron font-semibold text-xs uppercase tracking-wider transition-all"
+                  >
+                    <span>Démo / Documentation</span>
+                    <ExternalLink className="w-3.5 h-3.5 text-[#70A83B]" />
+                  </a>
+                )}
+              </div>
+
+              <span className="text-[11px] font-mono text-[#70A83B] font-semibold">
+                SYSTEM VERIFIED • 100% REPRODUCIBLE
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };
